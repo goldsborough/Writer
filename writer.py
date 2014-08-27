@@ -6,8 +6,8 @@ from ext import *
          
 class Main(QtGui.QMainWindow):
  
-    def __init__(self):
-        QtGui.QMainWindow.__init__(self,None)
+    def __init__(self,parent=None):
+        QtGui.QMainWindow.__init__(self,parent)
 
         self.filename = ""
         
@@ -85,10 +85,14 @@ class Main(QtGui.QMainWindow):
         tableAction.setShortcut("Ctrl+T")
         tableAction.triggered.connect(table.Table(self).show)
  
-        bulletAction = QtGui.QAction(QtGui.QIcon("icons/bullet.png"),"Insert Bullet List",self)
+        bulletAction = QtGui.QAction(QtGui.QIcon("icons/bullet.png"),"Insert bullet List",self)
+        bulletAction.setStatusTip("Insert bullet list")
+        bulletAction.setShortcut("Ctrl+Shift+B")
         bulletAction.triggered.connect(self.bulletList)
  
-        numberedAction = QtGui.QAction(QtGui.QIcon("icons/number.png"),"Insert Numbered List",self)
+        numberedAction = QtGui.QAction(QtGui.QIcon("icons/number.png"),"Insert numbered List",self)
+        numberedAction.setStatusTip("Insert numbered list")
+        numberedAction.setShortcut("Ctrl+Shift+L")
         numberedAction.triggered.connect(self.numberList)
  
         self.toolbar = self.addToolBar("Options")
@@ -478,7 +482,6 @@ class Main(QtGui.QMainWindow):
 
     def new(self):
 
-        # Opena new instance of the program for new
         spawn = Main()
         
         spawn.show()
@@ -495,12 +498,12 @@ class Main(QtGui.QMainWindow):
     def save(self):
 
         # Only open dialog if there is no filename yet
-        if self.filename == "":
-            self.filename = QtGui.QFileDialog.getSaveFileName(self, 'Save File')
+        if not self.filename:
+          self.filename = QtGui.QFileDialog.getSaveFileName(self, 'Save File')
 
         # Append extension if not there yet
-        if self.filename[-7:] != ".writer":
-            self.filename += ".writer"
+        if not self.filename.endswith(".writer"):
+          self.filename += ".writer"
         
         # We just store the contents of the text file along with the
         # format in html, which Qt does in a very nice way for us
@@ -548,12 +551,6 @@ class Main(QtGui.QMainWindow):
  
     def fontSize(self, fontsize):
         self.text.setFontPointSize(int(fontsize))
-
-    def copy(self):
-        self.text.copy()
-
-    def paste(self):
-        self.text.paste()
  
     def fontColor(self):
 
@@ -752,6 +749,7 @@ class Main(QtGui.QMainWindow):
           
 def main():
     app = QtGui.QApplication(sys.argv)
+    
     main = Main()
     main.show()
  
