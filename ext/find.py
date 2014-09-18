@@ -129,10 +129,12 @@ class Find(QtGui.QDialog):
 
         self.lastStart = 0
 
-        # Find and replace until self.lastStart is 0 again
+        self.find()
+
+        # Replace and find until self.lastStart is 0 again
         while self.lastStart:
-            self.find()
             self.replace()
+            self.find()
 
     def moveCursor(self,start,end):
 
