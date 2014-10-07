@@ -303,19 +303,19 @@ class Main(QtGui.QMainWindow):
             event.accept()
 
         else:
-        
+
             popup = QtGui.QMessageBox(self)
 
             popup.setIcon(QtGui.QMessageBox.Warning)
-            
+
             popup.setText("The document has been modified")
-            
+
             popup.setInformativeText("Do you want to save your changes?")
-            
+
             popup.setStandardButtons(QtGui.QMessageBox.Save   |
                                       QtGui.QMessageBox.Cancel |
                                       QtGui.QMessageBox.Discard)
-            
+
             popup.setDefaultButton(QtGui.QMessageBox.Save)
 
             answer = popup.exec_()
@@ -523,7 +523,7 @@ class Main(QtGui.QMainWindow):
         self.filename = QtGui.QFileDialog.getOpenFileName(self, 'Open File',".","(*.writer)")
 
         if self.filename:
-            with open(self.filename,"rt") as file:
+            with open(self.filename,"rt",encoding="utf-8") as file:
                 self.text.setText(file.read())
 
     def save(self):
@@ -533,14 +533,14 @@ class Main(QtGui.QMainWindow):
           self.filename = QtGui.QFileDialog.getSaveFileName(self, 'Save File')
 
         if self.filename:
-            
+
             # Append extension if not there yet
             if not self.filename.endswith(".writer"):
               self.filename += ".writer"
 
             # We just store the contents of the text file along with the
             # format in html, which Qt does in a very nice way for us
-            with open(self.filename,"wt") as file:
+            with open(self.filename,"wt", encoding="utf-8") as file:
                 file.write(self.text.toHtml())
 
             self.changesSaved = True
@@ -587,7 +587,7 @@ class Main(QtGui.QMainWindow):
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Insert image',".","Images (*.png *.xpm *.jpg *.bmp *.gif)")
 
         if filename:
-            
+
             # Create image object
             image = QtGui.QImage(filename)
 
