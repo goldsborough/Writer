@@ -6,12 +6,17 @@ from ext import *
 
 class Main(QtGui.QMainWindow):
 
-    def __init__(self,parent=None):
+    def __init__(self, app, parent = None):
+        
         QtGui.QMainWindow.__init__(self,parent)
 
         self.filename = ""
 
         self.changesSaved = True
+
+        self.nonPrintingEnabled = False
+
+        self.app = app
 
         self.initUI()
 
@@ -45,7 +50,7 @@ class Main(QtGui.QMainWindow):
         self.findAction = QtGui.QAction(QtGui.QIcon("icons/find.png"),"Find and replace",self)
         self.findAction.setStatusTip("Find and replace words in your document")
         self.findAction.setShortcut("Ctrl+F")
-        self.findAction.triggered.connect(find.Find(self).show)
+        self.findAction.triggered.connect(lambda: find.Find(self).show())
 
         self.cutAction = QtGui.QAction(QtGui.QIcon("icons/cut.png"),"Cut to clipboard",self)
         self.cutAction.setStatusTip("Delete and copy text to clipboard")
@@ -75,7 +80,7 @@ class Main(QtGui.QMainWindow):
         dateTimeAction = QtGui.QAction(QtGui.QIcon("icons/calender.png"),"Insert current date/time",self)
         dateTimeAction.setStatusTip("Insert current date/time")
         dateTimeAction.setShortcut("Ctrl+D")
-        dateTimeAction.triggered.connect(datetime.DateTime(self).show)
+        dateTimeAction.triggered.connect(lambda: datetime.DateTime(self).show())
 
         wordCountAction = QtGui.QAction(QtGui.QIcon("icons/count.png"),"See word/symbol count",self)
         wordCountAction.setStatusTip("See word/symbol count")
@@ -85,7 +90,7 @@ class Main(QtGui.QMainWindow):
         tableAction = QtGui.QAction(QtGui.QIcon("icons/table.png"),"Insert table",self)
         tableAction.setStatusTip("Insert table")
         tableAction.setShortcut("Ctrl+T")
-        tableAction.triggered.connect(table.Table(self).show)
+        tableAction.triggered.connect(lambda: table.Table(self).show())
 
         imageAction = QtGui.QAction(QtGui.QIcon("icons/image.png"),"Insert image",self)
         imageAction.setStatusTip("Insert image")
@@ -101,6 +106,13 @@ class Main(QtGui.QMainWindow):
         numberedAction.setStatusTip("Insert numbered list")
         numberedAction.setShortcut("Ctrl+Shift+L")
         numberedAction.triggered.connect(self.numberList)
+
+        linkAction = QtGui.QAction(QtGui.QIcon("icons/link.png"),"Insert hyperlink",self)
+        linkAction.setStatusTip("Insert hyperlink")
+        linkAction.setShortcut("Ctrl+H")
+
+        # Must use lambda, otherwise text isn't updated?
+        linkAction.triggered.connect(lambda: link.Link(self).show())
 
         self.toolbar = self.addToolBar("Options")
 
@@ -128,6 +140,7 @@ class Main(QtGui.QMainWindow):
         self.toolbar.addAction(wordCountAction)
         self.toolbar.addAction(tableAction)
         self.toolbar.addAction(imageAction)
+        self.toolbar.addAction(linkAction)                              
 
         self.toolbar.addSeparator()
 
@@ -337,73 +350,13 @@ class Main(QtGui.QMainWindow):
         # Grab the current table, if there is one
         table = cursor.currentTable()
 
+        # Grab current URL, if any
+        hyperlink = link.currentHyperlink(cursor)
+
         # Above will return 0 if there is no current table, in which case
         # we call the normal context menu. If there is a table, we create
         # our own context menu specific to table interaction
-        if table:
-
-            menu = QtGui.QMenu(self)
-
-            appendRowAction = QtGui.QAction("Append row",self)
-            appendRowAction.triggered.connect(lambda: table.appendRows(1))
-
-            appendColAction = QtGui.QAction("Append column",self)
-            appendColAction.triggered.connect(lambda: table.appendColumns(1))
-
-
-            removeRowAction = QtGui.QAction("Remove row",self)
-            removeRowAction.triggered.connect(self.removeRow)
-
-            removeColAction = QtGui.QAction("Remove column",self)
-            removeColAction.triggered.connect(self.removeCol)
-
-
-            insertRowAction = QtGui.QAction("Insert row",self)
-            insertRowAction.triggered.connect(self.insertRow)
-
-            insertColAction = QtGui.QAction("Insert column",self)
-            insertColAction.triggered.connect(self.insertCol)
-
-
-            mergeAction = QtGui.QAction("Merge cells",self)
-            mergeAction.triggered.connect(lambda: table.mergeCells(cursor))
-
-            # Only allow merging if there is a selection
-            if not cursor.hasSelection():
-                mergeAction.setEnabled(False)
-
-
-            splitAction = QtGui.QAction("Split cells",self)
-
-            cell = table.cellAt(cursor)
-
-            # Only allow splitting if the current cell is larger
-            # than a normal cell
-            if cell.rowSpan() > 1 or cell.columnSpan() > 1:
-
-                splitAction.triggered.connect(lambda: table.splitCell(cell.row(),cell.column(),1,1))
-
-            else:
-                splitAction.setEnabled(False)
-
-
-            menu.addAction(appendRowAction)
-            menu.addAction(appendColAction)
-
-            menu.addSeparator()
-
-            menu.addAction(removeRowAction)
-            menu.addAction(removeColAction)
-
-            menu.addSeparator()
-
-            menu.addAction(insertRowAction)
-            menu.addAction(insertColAction)
-
-            menu.addSeparator()
-
-            menu.addAction(mergeAction)
-            menu.addAction(splitAction)
+        if table or hyperlink:
 
             # Convert the widget coordinates into global coordinates
             pos = self.mapToGlobal(pos)
@@ -418,8 +371,95 @@ class Main(QtGui.QMainWindow):
             if self.formatbar.isVisible():
                 pos.setY(pos.y() + 45)
 
+            # Create new menu
+            menu = QtGui.QMenu(self)
+            
             # Move the menu to the new position
             menu.move(pos)
+
+            # Add actions for hyperlinks if available
+            if hyperlink:
+
+                openAction = QtGui.QAction("Open hyperlink",self)
+                openAction.triggered.connect(lambda: link.openHyperlink(hyperlink))
+
+                copyAction = QtGui.QAction("Copy hyperlink",self)
+                copyAction.triggered.connect(lambda: self.app.clipboard().setText(hyperlink))
+
+                removeAction = QtGui.QAction("Remove hyperlink",self)
+                removeAction.triggered.connect(lambda: link.removeHyperlink(cursor))
+
+                editAction = QtGui.QAction("Edit hyperlink",self)
+                editAction.triggered.connect(lambda: link.Link().forEditing(self).show())
+                
+                menu.addAction(openAction)
+                menu.addAction(copyAction)
+                menu.addAction(removeAction)
+                menu.addAction(editAction)
+
+                menu.addSeparator()
+
+            if table:
+
+                appendRowAction = QtGui.QAction("Append row",self)
+                appendRowAction.triggered.connect(lambda: table.appendRows(1))
+
+                appendColAction = QtGui.QAction("Append column",self)
+                appendColAction.triggered.connect(lambda: table.appendColumns(1))
+
+
+                removeRowAction = QtGui.QAction("Remove row",self)
+                removeRowAction.triggered.connect(self.removeRow)
+
+                removeColAction = QtGui.QAction("Remove column",self)
+                removeColAction.triggered.connect(self.removeCol)
+
+
+                insertRowAction = QtGui.QAction("Insert row",self)
+                insertRowAction.triggered.connect(self.insertRow)
+
+                insertColAction = QtGui.QAction("Insert column",self)
+                insertColAction.triggered.connect(self.insertCol)
+
+
+                mergeAction = QtGui.QAction("Merge cells",self)
+                mergeAction.triggered.connect(lambda: table.mergeCells(cursor))
+
+                # Only allow merging if there is a selection
+                if not cursor.hasSelection():
+                    mergeAction.setEnabled(False)
+
+                splitAction = QtGui.QAction("Split cells",self)
+
+                cell = table.cellAt(cursor)
+
+                # Only allow splitting if the current cell is larger
+                # than a normal cell
+                if cell.rowSpan() > 1 or cell.columnSpan() > 1:
+
+                    splitAction.triggered.connect(lambda: table.splitCell(cell.row(),cell.column(),1,1))
+
+                else:
+                    splitAction.setEnabled(False)
+
+
+                menu.addAction(appendRowAction)
+                menu.addAction(appendColAction)
+
+                menu.addSeparator()
+
+                menu.addAction(removeRowAction)
+                menu.addAction(removeColAction)
+
+                menu.addSeparator()
+
+                menu.addAction(insertRowAction)
+                menu.addAction(insertColAction)
+
+                menu.addSeparator()
+
+                menu.addAction(mergeAction)
+                menu.addAction(splitAction)
 
             menu.show()
 
@@ -803,9 +843,10 @@ class Main(QtGui.QMainWindow):
         cursor.insertList(QtGui.QTextListFormat.ListDecimal)
 
 def main():
+
     app = QtGui.QApplication(sys.argv)
 
-    main = Main()
+    main = Main(app)
     main.show()
 
     sys.exit(app.exec_())

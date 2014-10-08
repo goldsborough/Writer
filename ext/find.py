@@ -144,7 +144,7 @@ class Find(QtGui.QDialog):
         # Then we set the position to the beginning of the last match
         cursor.setPosition(start)
 
-        # Next we move the Cursor by over the match and pass the KeepAnchor parameter
+        # Next we move the cursor over the match and pass the KeepAnchor parameter
         # which will make the cursor select the the match's text
         cursor.movePosition(QtGui.QTextCursor.Right,QtGui.QTextCursor.KeepAnchor,end - start)
 
