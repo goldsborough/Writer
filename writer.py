@@ -50,7 +50,7 @@ class Main(QtGui.QMainWindow):
         self.findAction = QtGui.QAction(QtGui.QIcon("icons/find.png"),"Find and replace",self)
         self.findAction.setStatusTip("Find and replace words in your document")
         self.findAction.setShortcut("Ctrl+F")
-        self.findAction.triggered.connect(lambda: find.Find(self).show())
+        self.findAction.triggered.connect(find.Find(self).show)
 
         self.cutAction = QtGui.QAction(QtGui.QIcon("icons/cut.png"),"Cut to clipboard",self)
         self.cutAction.setStatusTip("Delete and copy text to clipboard")
@@ -80,7 +80,7 @@ class Main(QtGui.QMainWindow):
         dateTimeAction = QtGui.QAction(QtGui.QIcon("icons/calender.png"),"Insert current date/time",self)
         dateTimeAction.setStatusTip("Insert current date/time")
         dateTimeAction.setShortcut("Ctrl+D")
-        dateTimeAction.triggered.connect(lambda: datetime.DateTime(self).show())
+        dateTimeAction.triggered.connect(datetime.DateTime(self).show)
 
         wordCountAction = QtGui.QAction(QtGui.QIcon("icons/count.png"),"See word/symbol count",self)
         wordCountAction.setStatusTip("See word/symbol count")
@@ -90,7 +90,7 @@ class Main(QtGui.QMainWindow):
         tableAction = QtGui.QAction(QtGui.QIcon("icons/table.png"),"Insert table",self)
         tableAction.setStatusTip("Insert table")
         tableAction.setShortcut("Ctrl+T")
-        tableAction.triggered.connect(lambda: table.Table(self).show())
+        tableAction.triggered.connect(table.Table(self).show)
 
         imageAction = QtGui.QAction(QtGui.QIcon("icons/image.png"),"Insert image",self)
         imageAction.setStatusTip("Insert image")
@@ -612,6 +612,8 @@ class Main(QtGui.QMainWindow):
         col = cursor.columnNumber()
 
         self.statusbar.showMessage("Line: {} | Column: {}".format(line,col))
+
+        
 
     def wordCount(self):
 

@@ -84,10 +84,7 @@ class Find(QtGui.QDialog):
 
             else:
 
-                # Make the next search start from the begining again
-                self.lastStart = 0
-                
-                self.parent.text.moveCursor(QtGui.QTextCursor.End)
+                self.notFound()
 
         else:
 
@@ -105,10 +102,7 @@ class Find(QtGui.QDialog):
 
             else:
 
-                self.lastStart = 0
-                
-                # We set the cursor to the end if the search was unsuccessful
-                self.parent.text.moveCursor(QtGui.QTextCursor.End)
+                self.notFound()
 
     def replace(self):
 
@@ -150,3 +144,13 @@ class Find(QtGui.QDialog):
 
         # And finally we set this new cursor as the parent's 
         self.parent.text.setTextCursor(cursor)
+
+    def notFound(self):
+
+        self.lastStart = 0
+                
+        # We set the cursor to the end if the search was unsuccessful
+        self.parent.text.moveCursor(QtGui.QTextCursor.End)
+
+        # Make system beep
+        self.parent.app.beep()
