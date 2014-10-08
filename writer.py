@@ -390,7 +390,7 @@ class Main(QtGui.QMainWindow):
                 removeAction.triggered.connect(lambda: link.removeHyperlink(cursor))
 
                 editAction = QtGui.QAction("Edit hyperlink",self)
-                editAction.triggered.connect(lambda: link.Link().forEditing(self).show())
+                editAction.triggered.connect(lambda: link.Link(self,True).show())
                 
                 menu.addAction(openAction)
                 menu.addAction(copyAction)

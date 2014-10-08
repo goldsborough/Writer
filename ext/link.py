@@ -38,13 +38,15 @@ def removeHyperlink(cursor):
 
 class Link(QtGui.QDialog):
     
-    def __init__(self, parent = None):
+    def __init__(self, parent = None, forEditing = False):
 
         QtGui.QDialog.__init__(self,parent)
 
         self.parent = parent
 
-        self.removeWordBeneath = False
+        self.cursor = self.parent.text.textCursor()
+
+        self.forEditing = forEditing
 
         self.initUI()
 
@@ -55,16 +57,23 @@ class Link(QtGui.QDialog):
         
         self.urlField = QtGui.QLineEdit(self)
 
-        # In case classmethod was called
-        if self.parent:
-            
-            # Set current selection as URL (if any, else empty string)
-            self.urlField.setText(self.parent.text.textCursor().selectedText())
-
         # Label and LineEdit for text field (to display link as)
         textLabel = QtGui.QLabel("Display as: ",self)
 
         self.textField = QtGui.QLineEdit(self)
+
+        if self.forEditing:
+
+            # Set url to current link if for editing
+            self.urlField.setText(currentHyperlink(self.cursor))
+
+            # And fill the text field with the current selection
+            self.textField.setText(self.cursor.selectedText())
+
+        else:
+            
+            # Set current selection as URL (if any, else empty string)
+            self.urlField.setText(self.cursor.selectedText())
 
         # Button for inserting link
         insertButton = QtGui.QPushButton("Insert",self)
@@ -101,34 +110,16 @@ class Link(QtGui.QDialog):
         link = "<a href=\"{}\">{}</a>".format(url.toString(),text)
 
         # If we need to remove the word beneath
-        if self.removeWordBeneath:
-
-            cursor = self.parent.text.textCursor()
+        if self.forEditing:
 
             # Select the word
-            cursor.select(QtGui.QTextCursor.WordUnderCursor)
+            self.cursor.select(QtGui.QTextCursor.WordUnderCursor)
 
             # Remove it
-            cursor.removeSelectedText()
+            self.cursor.removeSelectedText()
         
         # Insert this link
-        self.parent.text.insertHtml(link)
+        self.cursor.insertHtml(link)
 
         # Close window after
         self.close()
-
-    @classmethod
-    def forEditing(cls, parent):
-
-        link = Link(parent)
-
-        cursor = parent.text.textCursor()
-
-        # Set text fields to current hyperlink and text
-        link.urlField.setText(currentHyperlink(cursor))
-        link.textField.setText(cursor.selectedText())
-
-        # Make the insert method remove the word beneath
-        link.removeWordBeneath = True
-        
-        return link
