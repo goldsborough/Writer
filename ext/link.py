@@ -55,8 +55,11 @@ class Link(QtGui.QDialog):
         
         self.urlField = QtGui.QLineEdit(self)
 
-        # Set current selection as URL (if any, else empty string)
-        self.urlField.setText(self.parent.text.textCursor().selectedText())
+        # In case classmethod was called
+        if self.parent:
+            
+            # Set current selection as URL (if any, else empty string)
+            self.urlField.setText(self.parent.text.textCursor().selectedText())
 
         # Label and LineEdit for text field (to display link as)
         textLabel = QtGui.QLabel("Display as: ",self)

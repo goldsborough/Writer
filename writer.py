@@ -529,7 +529,6 @@ class Main(QtGui.QMainWindow):
         # Insert a new row at the cell's position
         table.insertColumns(cell.column(),1)
 
-
     def toggleToolbar(self):
 
         state = self.toolbar.isVisible()
@@ -612,8 +611,6 @@ class Main(QtGui.QMainWindow):
         col = cursor.columnNumber()
 
         self.statusbar.showMessage("Line: {} | Column: {}".format(line,col))
-
-        
 
     def wordCount(self):
 
