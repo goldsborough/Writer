@@ -1,15 +1,20 @@
 Writer
 ======
 
-![Image of Writer](http://www.binpress.com/images/uploads/35937/writer.png)
+Latest screenshot:
 
-This repository holds the __finished__ source code for my tutorial series on __*Building a text editor with PyQt*__, where I outline the process of creating a rich-text editor using the Python binding for Qt, PyQt. The editor includes features for:
+![Image of Writer](https://raw.githubusercontent.com/goldsborough/Writer/master/writer.png)
+
+This repository holds the development code for *Writer*, a PyQt text editor. Features, fixes and updates will always first go to this repository and then, after a certain accumulation, to the tutorial repository,  [Writer-Tutorial](http://github.com/goldsborough/Writer-Tutorial).
+
+*Writer* includes features for:
 
 + File management
 + Rich-text formatting
-+ Table insertion and management
++ Table insertion and editing
 + Find-and-replace
 + Inserting images
++ Inserting and managing hyperlinks
 + And more!
 
 ##Tutorials
