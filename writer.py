@@ -1,3 +1,5 @@
+#!/usr/local/bin python3
+
 import sys
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import Qt
@@ -7,17 +9,25 @@ from ext import *
 class Main(QtGui.QMainWindow):
 
     def __init__(self, app, parent = None):
-        
+
         QtGui.QMainWindow.__init__(self,parent)
+
+        self.app = app
 
         self.filename = ""
 
         self.changesSaved = True
 
-        self.nonPrintingEnabled = False
+        self.pageCount = 0
 
-        self.app = app
+        self.pageCurr = 0
 
+        self.pageHeight = 841
+
+        self.lastDocumentHeight = self.pageHeight
+
+        self.documentMargin = 50
+    
         self.initUI()
 
     def initToolbar(self):
@@ -140,7 +150,7 @@ class Main(QtGui.QMainWindow):
         self.toolbar.addAction(wordCountAction)
         self.toolbar.addAction(tableAction)
         self.toolbar.addAction(imageAction)
-        self.toolbar.addAction(linkAction)                              
+        self.toolbar.addAction(linkAction)
 
         self.toolbar.addSeparator()
 
@@ -275,22 +285,80 @@ class Main(QtGui.QMainWindow):
         view.addAction(formatbarAction)
         view.addAction(statusbarAction)
 
-    def initUI(self):
+    def initDocument(self):
+
+        self.printer = QtGui.QPrinter()
+
+        # Set everything to zero because margin is set by the documents
+        # margin (otherwise the printer has an offset)
+        self.printer.setPageMargins(0,0,0,0,QtGui.QPrinter.DevicePixel)
 
         self.text = QtGui.QTextEdit(self)
+
+        self.text.setStyleSheet("background-color: #FFFFFF;")
+
+        # Get rid of ugly border
+        self.text.setFrameShape(QtGui.QFrame.NoFrame)
+        
+        # Good A4 width
+        self.text.setFixedWidth(595)
+
+        self.text.setMinimumHeight(self.pageHeight)
 
         # Set the tab stop width to around 33 pixels which is
         # more or less 8 spaces
         self.text.setTabStopWidth(33)
 
-        self.initToolbar()
-        self.initFormatbar()
-        self.initMenubar()
+        # Disable scroll bar
+        self.text.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
-        self.setCentralWidget(self.text)
+        doc = self.text.document()
 
-        # Initialize a statusbar for the window
-        self.statusbar = self.statusBar()
+        doc.setPageSize(QtCore.QSizeF(595,self.pageHeight))
+
+        # Set initial margin
+        rootFrame = doc.rootFrame()
+
+        fmt = rootFrame.frameFormat()
+
+        fmt.setMargin(self.documentMargin)
+
+        rootFrame.setFrameFormat(fmt)
+        
+        # Container widget that holds page
+        container = QtGui.QWidget(self)
+
+        container.setStyleSheet("background-color: #A0A0A0;")
+
+        # Layout for container
+        layout = QtGui.QGridLayout(self)
+
+        # Empty widget for spacing
+        layout.addWidget(QtGui.QWidget(),0,0)
+
+        # Add QTextEdit to layout
+        layout.addWidget(self.text,1,0)
+
+        # Set layout to container
+        container.setLayout(layout)
+
+        # Put container into a scroll area so that
+        # the user can scroll down to see all the pages
+        self.scrollArea = QtGui.QScrollArea(self)
+
+        self.scrollArea.setWidget(container)
+
+        self.scrollArea.setWidgetResizable(True)
+
+        # Align the scrollArea's widget in the center
+        self.scrollArea.setAlignment(Qt.AlignHCenter)
+
+        # Make the scrollArea take up the whole space of
+        # the MainWindow
+        self.setCentralWidget(self.scrollArea)
+
+        # Connect documentSizeChanged signal to handler, to resize QTextEdit and scroll down
+        self.text.document().documentLayout().documentSizeChanged.connect(self.handleDocumentSize)
 
         # If the cursor position changes, call the function that displays
         # the line and column number
@@ -300,13 +368,59 @@ class Main(QtGui.QMainWindow):
         self.text.setContextMenuPolicy(Qt.CustomContextMenu)
         self.text.customContextMenuRequested.connect(self.context)
 
+        # To monitor unsaved changes
         self.text.textChanged.connect(self.changed)
 
-        self.setGeometry(100,100,1030,800)
+    def initStatus(self):
+
+        self.status = self.statusBar()
+
+        self.status.setStyleSheet("background-color: #A0A0A0;")
+
+        self.pageCountLabel = QtGui.QLabel("",self)
+        
+        self.status.addPermanentWidget(self.pageCountLabel)
+
+        self.status.resize(400,50)
+
+        # Initialize value for cursor position
+        self.cursorPosition()
+
+    def initUI(self):
+
+        self.initDocument()
+        self.initToolbar()
+        self.initFormatbar()
+        self.initMenubar()
+        self.initStatus()
+
+        self.setMinimumSize(995,900)
+        self.move(450,25)
+        
         self.setWindowTitle("Writer")
         self.setWindowIcon(QtGui.QIcon("icons/icon.png"))
 
+    def handleDocumentSize(self,size):
+
+        height = size.height()
+
+        if height > self.pageHeight:
+            
+            self.text.setFixedHeight(height)
+            self.scrollArea.verticalScrollBar().setValue(height)
+
+            if height > self.lastDocumentHeight and height > (self.pageCount + 1) * self.pageHeight:
+            
+                self.pageCount += 1
+
+            elif height < self.lastDocumentHeight and height < self.pageCount * self.pageHeight:
+
+                self.pageCount -= 1
+
+        self.lastDocumentHeight = height
+
     def changed(self):
+        
         self.changesSaved = False
 
     def closeEvent(self,event):
@@ -373,7 +487,7 @@ class Main(QtGui.QMainWindow):
 
             # Create new menu
             menu = QtGui.QMenu(self)
-            
+
             # Move the menu to the new position
             menu.move(pos)
 
@@ -391,7 +505,7 @@ class Main(QtGui.QMainWindow):
 
                 editAction = QtGui.QAction("Edit hyperlink",self)
                 editAction.triggered.connect(lambda: link.Link(self,True).show())
-                
+
                 menu.addAction(openAction)
                 menu.addAction(copyAction)
                 menu.addAction(removeAction)
@@ -545,14 +659,14 @@ class Main(QtGui.QMainWindow):
 
     def toggleStatusbar(self):
 
-        state = self.statusbar.isVisible()
+        state = self.status.isVisible()
 
         # Set the visibility to its inverse
-        self.statusbar.setVisible(not state)
+        self.status.setVisible(not state)
 
     def new(self):
 
-        spawn = Main()
+        spawn = Main(self.app)
 
         spawn.show()
 
@@ -587,7 +701,7 @@ class Main(QtGui.QMainWindow):
     def preview(self):
 
         # Open preview dialog
-        preview = QtGui.QPrintPreviewDialog()
+        preview = QtGui.QPrintPreviewDialog(self.printer)
 
         # If a print is requested, open print dialog
         preview.paintRequested.connect(lambda p: self.text.print_(p))
@@ -597,7 +711,7 @@ class Main(QtGui.QMainWindow):
     def printHandler(self):
 
         # Open printing dialog
-        dialog = QtGui.QPrintDialog()
+        dialog = QtGui.QPrintDialog(self.printer)
 
         if dialog.exec_() == QtGui.QDialog.Accepted:
             self.text.document().print_(dialog.printer())
@@ -608,9 +722,16 @@ class Main(QtGui.QMainWindow):
 
         # Mortals like 1-indexed things
         line = cursor.blockNumber() + 1
-        col = cursor.columnNumber()
+        col = cursor.columnNumber() + 1
 
-        self.statusbar.showMessage("Line: {} | Column: {}".format(line,col))
+        self.status.showMessage("Line: {} | Column: {}".format(line,col))
+
+        # Calcule current page number from cursorPosition + margin for top + 10 to add padding for the space
+        # above the document
+        self.pageCurr = int((self.text.cursorRect().center().y() + self.documentMargin + 10) / self.pageHeight)
+
+        # Set cursorPosLabel with current page number
+        self.pageCountLabel.setText("Page {} of {}".format(self.pageCurr + 1,self.pageCount + 1))
 
     def wordCount(self):
 
