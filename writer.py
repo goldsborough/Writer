@@ -1,5 +1,3 @@
-#!/usr/local/bin python3
-
 import sys
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import Qt
@@ -27,7 +25,7 @@ class Main(QtGui.QMainWindow):
         self.lastDocumentHeight = self.pageHeight
 
         self.documentMargin = 50
-    
+
         self.initUI()
 
     def initToolbar(self):
@@ -299,7 +297,7 @@ class Main(QtGui.QMainWindow):
 
         # Get rid of ugly border
         self.text.setFrameShape(QtGui.QFrame.NoFrame)
-        
+
         # Good A4 width
         self.text.setFixedWidth(595)
 
@@ -324,7 +322,7 @@ class Main(QtGui.QMainWindow):
         fmt.setMargin(self.documentMargin)
 
         rootFrame.setFrameFormat(fmt)
-        
+
         # Container widget that holds page
         container = QtGui.QWidget(self)
 
@@ -378,7 +376,7 @@ class Main(QtGui.QMainWindow):
         self.status.setStyleSheet("background-color: #A0A0A0;")
 
         self.pageCountLabel = QtGui.QLabel("",self)
-        
+
         self.status.addPermanentWidget(self.pageCountLabel)
 
         self.status.resize(400,50)
@@ -396,7 +394,7 @@ class Main(QtGui.QMainWindow):
 
         self.setMinimumSize(995,900)
         self.move(450,25)
-        
+
         self.setWindowTitle("Writer")
         self.setWindowIcon(QtGui.QIcon("icons/icon.png"))
 
@@ -405,12 +403,12 @@ class Main(QtGui.QMainWindow):
         height = size.height()
 
         if height > self.pageHeight:
-            
+
             self.text.setFixedHeight(height)
             self.scrollArea.verticalScrollBar().setValue(height)
 
             if height > self.lastDocumentHeight and height > (self.pageCount + 1) * self.pageHeight:
-            
+
                 self.pageCount += 1
 
             elif height < self.lastDocumentHeight and height < self.pageCount * self.pageHeight:
@@ -420,7 +418,7 @@ class Main(QtGui.QMainWindow):
         self.lastDocumentHeight = height
 
     def changed(self):
-        
+
         self.changesSaved = False
 
     def closeEvent(self,event):
@@ -876,14 +874,16 @@ class Main(QtGui.QMainWindow):
             # Store the current line/block number
             temp = cursor.blockNumber()
 
-            # Move to the selection's last line
-            cursor.setPosition(cursor.selectionEnd())
+            # Move to the selection's end
+            cursor.setPosition(cursor.anchor())
 
             # Calculate range of selection
             diff = cursor.blockNumber() - temp
 
-            # Iterate over lines
-            for n in range(diff + 1):
+            direction = QtGui.QTextCursor.Up if diff > 0 else QtGui.QTextCursor.Down
+
+            # Iterate over lines (diff absolute value)
+            for n in range(abs(diff) + 1):
 
                 # Move to start of each line
                 cursor.movePosition(QtGui.QTextCursor.StartOfLine)
@@ -892,7 +892,7 @@ class Main(QtGui.QMainWindow):
                 cursor.insertText("\t")
 
                 # And move back up
-                cursor.movePosition(QtGui.QTextCursor.Up)
+                cursor.movePosition(direction)
 
         # If there is no selection, just insert a tab
         else:
@@ -931,18 +931,20 @@ class Main(QtGui.QMainWindow):
             temp = cursor.blockNumber()
 
             # Move to the selection's last line
-            cursor.setPosition(cursor.selectionEnd())
+            cursor.setPosition(cursor.anchor())
 
             # Calculate range of selection
             diff = cursor.blockNumber() - temp
 
+            direction = QtGui.QTextCursor.Up if diff > 0 else QtGui.QTextCursor.Down
+
             # Iterate over lines
-            for n in range(diff + 1):
+            for n in range(abs(diff) + 1):
 
                 self.handleDedent(cursor)
 
                 # Move up
-                cursor.movePosition(QtGui.QTextCursor.Up)
+                cursor.movePosition(direction)
 
         else:
             self.handleDedent(cursor)
