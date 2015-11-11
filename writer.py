@@ -471,23 +471,10 @@ class Main(QtGui.QMainWindow):
         if table or hyperlink:
 
             # Convert the widget coordinates into global coordinates
-            pos = self.mapToGlobal(pos)
-
-            # Add pixels for the tool and formatbars, which are not included
-            # in mapToGlobal(), but only if the two are currently visible and
-            # not toggled by the user
-
-            if self.toolbar.isVisible():
-                pos.setY(pos.y() + 45)
-
-            if self.formatbar.isVisible():
-                pos.setY(pos.y() + 45)
+            pos = self.text.mapToGlobal(pos)
 
             # Create new menu
-            menu = QtGui.QMenu(self)
-
-            # Move the menu to the new position
-            menu.move(pos)
+            menu = QtGui.QMenu(self.text)
 
             # Add actions for hyperlinks if available
             if hyperlink:
@@ -573,7 +560,7 @@ class Main(QtGui.QMainWindow):
                 menu.addAction(mergeAction)
                 menu.addAction(splitAction)
 
-            menu.show()
+            menu.exec_(pos)
 
         else:
 
