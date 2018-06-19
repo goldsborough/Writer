@@ -17,12 +17,12 @@ This repository holds the development code for *Writer*, a PyQt text editor. Fea
 + Inserting and managing hyperlinks
 + And more!
 
-##Tutorials
+## Tutorials
 
-Part 1: http://www.binpress.com/tutorial/building-a-text-editor-with-pyqt-part-one/143
+[Part 1](https://web.archive.org/web/20170611221525/http://www.binpress.com:80/tutorial/building-a-text-editor-with-pyqt-part-one/143)
 
-Part 2: http://www.binpress.com/tutorial/developing-a-pyqt-text-editor-part-2/145
+[Part 2](https://web.archive.org/web/20170611221525/http://www.binpress.com:80/tutorial/developing-a-pyqt-text-editor-part-2/145)
 
-Part 3: http://www.binpress.com/tutorial/building-a-text-editor-with-pyqt-part-3/147
+[Part 3](https://web.archive.org/web/20170611221525/http://www.binpress.com:80/tutorial/building-a-text-editor-with-pyqt-part-3/147)
 
-Part 4: http://www.binpress.com/tutorial/building-a-text-editor-with-pyqt-part-4/148
+[Part 4](https://web.archive.org/web/20170611221525/http://www.binpress.com:80/tutorial/building-a-text-editor-with-pyqt-part-4/148)
